@@ -1,0 +1,26 @@
+.list-todo-content {
+    width: 400px;
+    margin: 0 auto;
+}
+
+.todochild {
+    height: 40px;
+    border-bottom: 1px solid grey;
+    margin: 10px;
+}
+
+.todochild:first-child {
+    border-top: 1px solid grey;
+}
+
+button.edit {
+    margin: 0 10px;
+}
+
+button {
+    cursor: pointer;
+}
+
+.create {
+    margin: 0 10px;
+}
