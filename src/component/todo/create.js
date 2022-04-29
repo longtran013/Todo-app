@@ -37,6 +37,11 @@ class Create extends Component {
             <div className='add-todo'>
                 <input type='text' value={title}
                     onChange={(event) => this.handleOnChangeTitle(event)}
+                    onKeyPress={(e) => {
+                        if (e.key === "Enter") {
+                            this.handleCreate();
+                        }
+                    }}
                 />
                 <button type='button' className='create'
                     onClick={() => this.handleCreate()}    

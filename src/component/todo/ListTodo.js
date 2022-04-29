@@ -1,94 +1,136 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
+
 import './ListTodo.css';
+import Create from './create.js';
 
 class ListTodo extends Component {
+
     state = {
-        title: ''
+        listTodos: [
+            { id: 'todo1', title: 'Work'},
+            { id: 'todo2', title: 'Play'},
+            { id: 'todo3', title: 'Study'},
+        ],
+        editTodo: {}
     }
 
-    handleOnChangeCreate = (event) => {
+    createTodo = (todo) => {
+        // let currentListTodo = this.state.listTodos
+        // currentListTodo.push(todo)
+
         this.setState ({
-            title: event.target.value
+            listTodos: [...this.state.listTodos, todo]
+            // listTodos = currentListTodo
         })
     }
 
-    handleCreateTodo = (title) => {
-        console.log('>>> check create: ', title)
+    // trả về mảng sau khi xóa (check item.id với todo.id -> trả về mảng)
+    // xóa todo1, trả về mảng todo2 và todo3 (vì todo 1 != todo2, todo3)
 
-        if(!this.state.title) {
-            alert('Cannot create empty todo')
+    handleDeleteTodo = (todo) => {
+        let currentTodos = this.state.listTodos;
+        currentTodos = currentTodos.filter(item => item.id !== todo.id)
+        this.setState ({
+            listTodos: currentTodos
+        })
+    }
+
+    handleEditTodo = (todo) => {
+        let { editTodo, listTodos } = this.state;
+
+        // nếu length === 0 -> true
+        let isEmptyObj = Object.keys(editTodo).length === 0;
+
+        // nút Save - trong trường hợp editTodo ko rỗng (đang Edit)
+
+        if (isEmptyObj === false && editTodo.id === todo.id) {
+            let listTodosCopy = [...listTodos]
+            // tìm index (id)
+            let objIndex = listTodosCopy.findIndex((item => item.id === todo.id));
+
+            listTodosCopy[objIndex].title = editTodo.title;
+
+            this.setState({
+                listTodos: listTodosCopy,
+                editTodo: {}
+            })
+
             return;
         }
-        
-        this.props.createTodoRedux(title);
-
+        // nút Edit
         this.setState({
-            title: ''
+            editTodo: todo
         })
     }
 
-    handleDeleteTodo = (todos) => {
-        console.log('>>> check todo delete: ', todos)
-        this.props.deleteTodoRedux(todos);
-    }
-
-    handleEditTodo = (todos) => {
-        console.log('>>> check todo edit: ', todos)
-        this.props.editTodoRedux(todos)
+    handleOnChangeEditTodo = (event) => {
+        let editTodoCopy = {...this.state.editTodo};
+        editTodoCopy.title = event.target.value;
+        this.setState({
+            editTodo: editTodoCopy
+        })
     }
 
     render() {
-        let listTodos = this.props.dataRedux;
-        return (
-            <>
-                <p>
-                    Todo List
-                </p>
-                <div className='list-todo-container'>
-                    <input type="text" value={this.state.title}
-                        onChange={(event) => this.handleOnChangeCreate(event)}
-                    />
-                    <button className='create'
-                        onClick={() => this.handleCreateTodo(this.state.title)}
-                    >Create</button>
-                    <div className='list-todo-content'>
-                        {listTodos && listTodos.length > 0 && 
-                            listTodos.map((item, index) => {
-                                return (
-                                    <div className='todochild' key={item.id}>
-                                        <span>{index + 1}. {item.title}</span>
-                                        <button className='edit'
-                                            onClick={() => this.handleEditTodo(item)}
-                                        >Edit</button>
+        // let listTodos = this.state.listTodos
+        let { listTodos, editTodo } = this.state;
 
-                                        <button className='delete'
-                                            onClick={() => this.handleDeleteTodo(item)}
-                                        >Delete</button>
-                                    </div>
-                                )
-                            })
-                        }
-                    </div>
+        let isEmptyObj = Object.keys(editTodo).length === 0;
+
+        return (
+            <div className='list-todo-container'>
+                <Create createTodo={this.createTodo}/>
+                <div className='list-todo-content'>
+                    { listTodos && listTodos.length > 0 &&
+                        listTodos.map((item, index) => {
+                            return (
+                                <div className='todochild' key={item.id}>
+
+                                    {/* nếu editTodo rỗng (true - chưa edit) */}
+                                    {isEmptyObj === true ?
+                                        <span> {index + 1}. {item.title} </span> /* in bình thường */
+                                        :
+                                        <> {/* nếu editTodo ko rỗng (false - ấn edit) */}
+                                            {editTodo.id === item.id ? // check nếu id của edit === item thì chỉ hiện input edit ở item đó 
+                                                                       // ấn edit todo1 thì chỉ item1 sửa 
+                                                <span>
+                                                    {index + 1}. <input
+                                                    value={editTodo.title}
+                                                    onChange={(event) => this.handleOnChangeEditTodo(event)} 
+                                                    onKeyPress={(e) => {
+                                                        if (e.key === "Enter") {
+                                                            this.handleEditTodo(item);
+                                                        }
+                                                    }}                                  
+                                                    />
+                                                </span>
+                                                :
+                                                // nếu !== thì in bình thường
+                                                // item2 với item3 hiện như bình thường
+                                                <span>
+                                                    {index + 1}. {item.title}
+                                                </span>
+                                            }
+                                        </>
+                                    }
+                                    <button className='edit'
+                                        onClick={() => this.handleEditTodo(item)}
+                                    >
+                                        {isEmptyObj === false && editTodo.id === item.id ?
+                                            'Save': 'Edit'
+                                        }
+                                        </button>
+                                    <button className='delete'
+                                        onClick={() => this.handleDeleteTodo(item)}
+                                    >Delete</button>
+                                </div>
+                            )
+                        })
+                    }
                 </div>
-            </>
+            </div>
         )
     }
 }
 
-
-const mapStateToProps = (state) => {
-    return {
-        dataRedux: state.todoReducer.todos
-    }
-}
-
-const mapDispatchToProps = (dispatch) => {
-    return {
-        createTodoRedux: (todoCreate) => dispatch ({ type: 'CREATE_TODO', payload: todoCreate }),
-        deleteTodoRedux: (todoDelete) => dispatch ({ type: 'DELETE_TODO', payload: todoDelete }),
-        editTodoRedux: (todoEdit) => dispatch ({ type: 'EDIT_TODO', payload: todoEdit })
-    }
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(ListTodo);
+export default ListTodo;
